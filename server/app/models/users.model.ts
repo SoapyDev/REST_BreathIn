@@ -2,7 +2,7 @@ import { Model } from 'sequelize';
 
 
 class User extends Model {
-    public id!: number;
+    public id!: string;
     public email!: string;
     public name!: string;
     public password!: string;

@@ -10,8 +10,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { db } from './app/models/index.js';
 import dotenv from "dotenv";
+import router from "./app/routes/userRoutes.js";
+import textRouter from "./app/routes/textRoutes.js";
+import configRouter from './app/routes/configRoutes.js';
+import { db } from './app/models/index.js';
 dotenv.config();
 const app = express();
 const corsOptions = {
@@ -20,14 +23,18 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(router);
+app.use(textRouter);
+app.use(configRouter);
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const users = yield db.User.findAll();
-        res.json(users);
-        console.log("success");
+        yield db.sequelize.authenticate();
+        res.status(400).send({
+            message: "Connected successfully"
+        });
     }
     catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).send({ message: `Could not connect to the database : ${err.message}` });
     }
 }));
 const PORT = process.env.PORT || 8080;

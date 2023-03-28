@@ -1,6 +1,9 @@
 import { db } from "../models/index.js"
+import { Request, Response } from 'express';
 
-export const create = async (req, res) => {
+
+
+export const createUser = async (req: Request, res: Response) => {
     try {
         // Validate request
         if (!req.body.email || !req.body.name || !req.body.password) {
@@ -27,44 +30,7 @@ export const create = async (req, res) => {
     }
 };
 
-// Retrieve all Users from the database.
-export const findAll = async (req, res) => {
-    try {
-        const users = await db.User.findAll();
-        res.send(users);
-    } catch (err) {
-        res.status(500).send({
-            message: err.message || 'Some error occurred while retrieving users.',
-        });
-    }
-};
-
-// Find a single User with an id
-export const findOne = async (req, res) => {
-    const id = req.params.id;
-
-    try {
-        const user = await db.User.findByPk(id);
-
-        if (!user) {
-            res.status(404).send({
-                message: `User with id=${id} was not found.`,
-            });
-            return;
-        }
-
-        res.send(user);
-    } catch (err) {
-        res.status(500).send({
-            message: err.message || `Error retrieving User with id=${id}.`,
-        });
-    }
-};
-
-// Update a User by the id in
-
-// Update a User by the id in the request
-export const update = async (req, res) => {
+export const updateUser = async (req: Request, res: Response) => {
     const id = req.params.id;
 
     try {
@@ -88,8 +54,7 @@ export const update = async (req, res) => {
     }
 };
 
-// Delete a User with the specified id in the request
-export const deleteOne = async (req, res) => {
+export const deleteUser = async (req: Request, res: Response) => {
     const id = req.params.id;
 
     try {
@@ -111,7 +76,68 @@ export const deleteOne = async (req, res) => {
             message: err.message || `Could not delete User with id=${id}.`,
         });
     }
-
-    
 };
 
+export const isValidEmail = async (req: Request, res: Response) => {
+    const email = req.body.email;
+
+    try {
+        if (!email) {
+            res.status(400).send({ message: "Need an email" });
+            return;
+        }
+        const { count } = await db.User.findAndCountAll({
+            where: { email: email }
+        });
+        if (count === 1) {
+            res.status(400).send({ message: `The email ${email} exist in the database.` })
+        } else if (count > 1) {
+            res.status(400).send({
+                message: `Multiple email with those characters where found. There is probably an error in the email : ${email}`
+            })
+        } else {
+            res.status(400).send({ message: `There is no such email : ${email}` });
+        }
+    } catch (err) {
+        res.status(500).send({
+            message: err.message || `Could not find User with an email=${email}`
+        })
+    }
+
+};
+
+export const login = async (req: Request, res: Response) => {
+
+    const email = req.body.email;
+    const password = req.body.email;
+
+    try {
+        if (!email || !password) {
+            res.status(400).send({
+                message: "Need an email and a password to login"
+            })
+            return;
+        }
+
+        const user = db.User.findOne({
+            where: {
+                email: email,
+                password: password
+            }
+        })
+
+        if (!user) {
+            res.status(404).send({
+                message: `User with email ${email} and password ${password} was not found.`,
+            });
+            return;
+        }
+
+        res.status(400).send(user)
+    } catch (err) {
+        res.status(500).send({
+            message: err.message || `Could not find user with email=${email} and password=${password}`
+        })
+
+    }
+};

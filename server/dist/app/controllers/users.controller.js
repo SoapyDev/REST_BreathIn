@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { db } from "../models/index.js";
-export const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+export const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Validate request
         if (!req.body.email || !req.body.name || !req.body.password) {
@@ -33,40 +33,7 @@ export const create = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
 });
-// Retrieve all Users from the database.
-export const findAll = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const users = yield db.User.findAll();
-        res.send(users);
-    }
-    catch (err) {
-        res.status(500).send({
-            message: err.message || 'Some error occurred while retrieving users.',
-        });
-    }
-});
-// Find a single User with an id
-export const findOne = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
-    try {
-        const user = yield db.User.findByPk(id);
-        if (!user) {
-            res.status(404).send({
-                message: `User with id=${id} was not found.`,
-            });
-            return;
-        }
-        res.send(user);
-    }
-    catch (err) {
-        res.status(500).send({
-            message: err.message || `Error retrieving User with id=${id}.`,
-        });
-    }
-});
-// Update a User by the id in
-// Update a User by the id in the request
-export const update = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+export const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     try {
         const [num] = yield db.User.update(req.body, {
@@ -89,8 +56,7 @@ export const update = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
 });
-// Delete a User with the specified id in the request
-export const deleteOne = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+export const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     try {
         const num = yield db.User.destroy({
@@ -110,6 +76,64 @@ export const deleteOne = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (err) {
         res.status(500).send({
             message: err.message || `Could not delete User with id=${id}.`,
+        });
+    }
+});
+export const isValidEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const email = req.body.email;
+    try {
+        if (!email) {
+            res.status(400).send({ message: "Need an email" });
+            return;
+        }
+        const { count } = yield db.User.findAndCountAll({
+            where: { email: email }
+        });
+        if (count === 1) {
+            res.status(400).send({ message: `The email ${email} exist in the database.` });
+        }
+        else if (count > 1) {
+            res.status(400).send({
+                message: `Multiple email with those characters where found. There is probably an error in the email : ${email}`
+            });
+        }
+        else {
+            res.status(400).send({ message: `There is no such email : ${email}` });
+        }
+    }
+    catch (err) {
+        res.status(500).send({
+            message: err.message || `Could not find User with an email=${email}`
+        });
+    }
+});
+export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const email = req.body.email;
+    const password = req.body.email;
+    try {
+        if (!email || !password) {
+            res.status(400).send({
+                message: "Need an email and a password to login"
+            });
+            return;
+        }
+        const user = db.User.findOne({
+            where: {
+                email: email,
+                password: password
+            }
+        });
+        if (!user) {
+            res.status(404).send({
+                message: `User with email ${email} and password ${password} was not found.`,
+            });
+            return;
+        }
+        res.status(400).send(user);
+    }
+    catch (err) {
+        res.status(500).send({
+            message: err.message || `Could not find user with email=${email} and password=${password}`
         });
     }
 });
