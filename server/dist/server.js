@@ -18,7 +18,7 @@ import { db } from './app/models/index.js';
 dotenv.config();
 const app = express();
 const corsOptions = {
-    origin: 'http://localhost:8081'
+    origin: 'http://localhost:5173'
 };
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
@@ -37,7 +37,7 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).send({ message: `Could not connect to the database : ${err.message}` });
     }
 }));
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
     console.log(`Server is running on : ${PORT}`);
 });

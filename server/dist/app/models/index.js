@@ -15,9 +15,9 @@ const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
 });
 User.init({
     id: {
-        type: DataTypes.INTEGER.UNSIGNED,
-        autoIncrement: true,
+        type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: "",
     },
     email: {
         type: DataTypes.STRING,
@@ -33,13 +33,11 @@ User.init({
     },
     createdAt: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-        allowNull: false,
+        allowNull: true,
     },
     updatedAt: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
-        allowNull: false,
+        allowNull: true,
     },
 }, {
     tableName: 'Users',
@@ -60,13 +58,11 @@ Text.init({
     },
     createdAt: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-        allowNull: false,
+        allowNull: true,
     },
     updatedAt: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
-        allowNull: false,
+        allowNull: true,
     },
 }, {
     tableName: 'Texts',

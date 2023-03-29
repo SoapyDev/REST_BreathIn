@@ -23,9 +23,18 @@ export const createUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
             name: req.body.name,
             password: req.body.password,
         };
+        const num = yield db.User.count({
+            where: { email: user.email },
+        });
+        if (num > 0) {
+            res.status(409).send({
+                message: 'Email already exists!',
+            });
+            return;
+        }
         // Save User in the database
         const createdUser = yield db.User.create(user);
-        res.send(createdUser);
+        res.status(200).send(createdUser);
     }
     catch (err) {
         res.status(500).send({
@@ -40,7 +49,7 @@ export const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id },
         });
         if (num === 1) {
-            res.send({
+            res.status(200).send({
                 message: 'User was updated successfully.',
             });
         }
@@ -63,7 +72,7 @@ export const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id },
         });
         if (num === 1) {
-            res.send({
+            res.status(200).send({
                 message: 'User was deleted successfully!',
             });
         }
@@ -79,37 +88,9 @@ export const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
     }
 });
-export const isValidEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const email = req.body.email;
-    try {
-        if (!email) {
-            res.status(400).send({ message: "Need an email" });
-            return;
-        }
-        const { count } = yield db.User.findAndCountAll({
-            where: { email: email }
-        });
-        if (count === 1) {
-            res.status(400).send({ message: `The email ${email} exist in the database.` });
-        }
-        else if (count > 1) {
-            res.status(400).send({
-                message: `Multiple email with those characters where found. There is probably an error in the email : ${email}`
-            });
-        }
-        else {
-            res.status(400).send({ message: `There is no such email : ${email}` });
-        }
-    }
-    catch (err) {
-        res.status(500).send({
-            message: err.message || `Could not find User with an email=${email}`
-        });
-    }
-});
 export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const email = req.body.email;
-    const password = req.body.email;
+    const password = req.body.password;
     try {
         if (!email || !password) {
             res.status(400).send({
@@ -117,14 +98,14 @@ export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             });
             return;
         }
-        const user = db.User.findOne({
+        const user = yield db.User.findOne({
             where: {
                 email: email,
                 password: password
             }
         });
         if (!user) {
-            res.status(404).send({
+            res.status(200).send({
                 message: `User with email ${email} and password ${password} was not found.`,
             });
             return;

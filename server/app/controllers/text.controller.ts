@@ -5,12 +5,12 @@ export const getTitles = async (req: Request, res: Response) => {
 
     try {
         const results = await db.Text.findAll()
-        const titles = results.map(result => result.title);
-        if (!titles) {
+        if (!results) {
             res.status(404).send({ message: "No titles where found" })
         }
+        const titles = results.map(result => result.title);
 
-        res.status(400).send(titles);
+        res.status(200).send(titles);
     } catch (err) {
         res.status(500).send({
             message: err.message || `Could not connect to the database.`
