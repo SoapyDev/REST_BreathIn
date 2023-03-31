@@ -21,33 +21,18 @@ export const getTitles = async (req: Request, res: Response) => {
 
 export const getText = async (req: Request, res: Response) => {
 
-    const title = req.body.title;
+    const title = req.params.title;
 
     try {
-        if (!title) {
-            res.status(400).send({
-                message: "Need a selected title"
-            })
-            return;
+        const result = await db.Text.findByPk();
+        if (!result) {
+            res.status(404).send({ message: 'No text found for the given title' });
+        } else {
+            res.status(200).send(result);
         }
-
-        const text = db.Text.findOne({
-            where: {
-                title: title
-            }
-        })
-
-        if (!text) {
-            res.status(404).send({
-                message: `No text with this title was found`,
-            });
-            return;
-        }
-
-        res.status(400).send(text)
     } catch (err) {
         res.status(500).send({
-            message: err.message || `Could not find a text with the title ${title}`
-        })
+            message: err.message || 'Could not connect to the database.',
+        });
     }
 };
