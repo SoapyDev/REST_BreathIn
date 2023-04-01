@@ -14,6 +14,7 @@ class Config extends Model {
     public color1: string;
     public color2: string;
     public color3: string;
+    public theme: string;
     public user_id!: string;
     public shared: boolean;
     public current: boolean;

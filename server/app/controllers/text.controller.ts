@@ -24,7 +24,7 @@ export const getText = async (req: Request, res: Response) => {
     const title = req.params.title;
 
     try {
-        const result = await db.Text.findByPk();
+        const result = await db.Text.findByPk(title);
         if (!result) {
             res.status(404).send({ message: 'No text found for the given title' });
         } else {

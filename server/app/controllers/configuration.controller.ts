@@ -70,37 +70,59 @@ export const deleteConfiguration = async (req: Request, res: Response) => {
     }
 };
 
-export const getConfiguration = async (req: Request, res: Response) => {
+export const getActualConfig = async (req: Request, res: Response) => {
+    const token = req.body.token;
     try {
-        const id = req.body.id;
 
-        if (!id) {
+        let user_connection;
+
+        user_connection = await db.Connection.findByPk(token)
+        if (!user_connection) {
             res.status(404).send({
-                message: "No id where given"
+                message: `No configuration was found`
             })
             return;
         }
 
-        const configuration = db.Config.findByPk(id);
+        let user;
+
+        user = await db.User.findByPk(user_connection.user_id);
+
+        if (!user) {
+            res.status(404).send({
+                message: `No configuration was found`
+            })
+            return;
+        }
+
+
+
+        const configuration = await db.Config.findOne({
+            where: {
+                user_id: user.id,
+                current: true,
+            }
+        });
 
         if (!configuration) {
             res.status(404).send({
-                message: `No configuration has this id=${id}`
+                message: `No configuration was found`
             })
             return;
         }
+        res.status(200).send(configuration)
 
-        res.status(400).send(configuration)
     } catch (err) {
         res.status(500).send({
-            message: err.message || `No configuration has this id`
+            message: err.message || `No configuration was found`
         })
     }
 };
 
 export const getConfigurations = async (req: Request, res: Response) => {
+
+    const userId = req.body.userId;
     try {
-        const userId = req.body.userId;
         const configurations = await db.Config.findAll({
             where: {
                 user_id: userId

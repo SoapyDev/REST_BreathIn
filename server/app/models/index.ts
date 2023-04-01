@@ -3,6 +3,8 @@ import { config } from "../config/db.config.js"
 import User from "./users.model.js";
 import Text from "./texts.models.js";
 import Config from './config.models.js';
+import Connection from './connectionModels.js';
+
 
 const sequelize = new Sequelize(
     config.DB,
@@ -24,7 +26,7 @@ const sequelize = new Sequelize(
 User.init(
     {
         id: {
-            type: DataTypes.CHAR(36),
+            type: DataTypes.INTEGER,
             primaryKey: true,
             defaultValue: "",
         },
@@ -134,26 +136,28 @@ Config.init(
             type: DataTypes.STRING(7),
             allowNull: true,
         },
+        theme: {
+            type: DataTypes.ENUM('dark', 'light'),
+            allowNull: true,
+        },
         user_id: {
             type: DataTypes.STRING,
             allowNull: true,
         },
         shared: {
             type: DataTypes.BOOLEAN,
-            allowNull: true,
+            defaultValue: false,
         },
         current: {
             type: DataTypes.BOOLEAN,
-            allowNull: true,
+            defaultValue: false,
         },
         createdAt: {
             type: DataTypes.DATE,
-            defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
             allowNull: true,
         },
         updatedAt: {
             type: DataTypes.DATE,
-            defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
             allowNull: true,
         },
     },
@@ -163,11 +167,43 @@ Config.init(
     }
 )
 
+Connection.init(
+    {
+        id: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+        },
+        user_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        dateToDisconnect: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        createdAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+
+    },
+    {
+        tableName: 'Connections',
+        sequelize: sequelize
+    }
+)
+
+
 const db = {
     sequelize: sequelize,
     Sequelize: Sequelize,
     User,
     Text,
     Config,
+    Connection
 };
 export { sequelize, db };
