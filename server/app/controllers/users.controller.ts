@@ -1,3 +1,4 @@
+import { connect } from "http2";
 import { db } from "../models/index.js"
 import { Request, Response } from 'express';
 
@@ -163,7 +164,7 @@ export const isLoggedIn = async (req: Request, res: Response) => {
 }
 export const logout = async (req: Request, res: Response) => {
 
-    const token = req.params.id;
+    const token = req.params.token;
 
     try {
         if (!token) {
@@ -173,22 +174,12 @@ export const logout = async (req: Request, res: Response) => {
             return;
         }
 
-
-        const disconnected = await db.Connection.destroy({
+        await db.Connection.destroy({
             where: {
                 id: token
             }
         })
-
-        if (disconnected >= 1) {
-            res.status(200).send({
-                message: 'Connection was deleted successfully!',
-            });
-        } else {
-            res.status(404).send({
-                message: 'Could not find the connection'
-            });
-        }
+        res.status(200).send({ message: "The user is disconnected" });
 
     } catch (err) {
         res.status(500).send({

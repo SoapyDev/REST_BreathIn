@@ -5,6 +5,7 @@ class Text extends Model {
     public title!: string;
     public text!: string;
     public link!: string;
+    public lang!: string;
     public createdAt!: Date;
     public updatedAt!: Date;
 }

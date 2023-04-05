@@ -21,20 +21,14 @@ export const createUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const user = {
             email: req.body.email,
             name: req.body.name,
-            password: req.body.password,
+            password: req.body.password
         };
-        const num = yield db.User.count({
-            where: { email: user.email },
-        });
-        if (num > 0) {
-            res.status(409).send({
-                message: 'Email already exists!',
-            });
-            return;
-        }
         // Save User in the database
-        const createdUser = yield db.User.create(user);
-        res.status(200).send(createdUser);
+        const [_instance, created] = yield db.User.findOrCreate({
+            where: { email: user.email },
+            defaults: user
+        });
+        res.status(200).send(created);
     }
     catch (err) {
         res.status(500).send({
@@ -68,10 +62,16 @@ export const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
 export const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     try {
-        const num = yield db.User.destroy({
+        const _numConnection = yield db.Connection.destroy({
+            where: { user_id: id }
+        });
+        const _numConfig = yield db.Config.destroy({
+            where: { user_id: id },
+        });
+        const numUser = yield db.User.destroy({
             where: { id },
         });
-        if (num === 1) {
+        if (numUser === 1) {
             res.status(200).send({
                 message: 'User was deleted successfully!',
             });
@@ -89,8 +89,7 @@ export const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const email = req.body.email;
-    const password = req.body.password;
+    const { email, password } = req.body;
     try {
         if (!email || !password) {
             res.status(400).send({
@@ -100,21 +99,73 @@ export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         }
         const user = yield db.User.findOne({
             where: {
-                email: email,
-                password: password
+                email: email
             }
         });
-        if (!user) {
-            res.status(200).send({
-                message: `User with email ${email} and password ${password} was not found.`,
+        if (!user || password != user.password.toString()) {
+            res.status(401).send({
+                message: `User with email ${email} and the given password was not found.`,
             });
             return;
         }
-        res.status(400).send(user);
+        const [instance, _created] = yield db.Connection.findOrCreate({
+            where: {
+                user_id: user.id,
+            }
+        });
+        res.status(201).send({ id: instance.id });
     }
     catch (err) {
         res.status(500).send({
             message: err.message || `Could not find user with email=${email} and password=${password}`
+        });
+    }
+});
+export const isLoggedIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.body.token;
+    try {
+        if (!token) {
+            res.status(400).send({
+                message: "Need a token to validate the login state."
+            });
+            return;
+        }
+        const connection = yield db.Connection.findOne({
+            where: {
+                id: token
+            }
+        });
+        if (!connection) {
+            res.status(401).send(false);
+            return;
+        }
+        res.status(201).send(true);
+    }
+    catch (err) {
+        res.status(500).send({
+            message: err.message || `Could not find connection with given token.`
+        });
+    }
+});
+export const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.params.token;
+    try {
+        if (!token) {
+            res.status(400).send({
+                message: "Need a token to disconnect."
+            });
+            return;
+        }
+        yield db.Connection.destroy({
+            where: {
+                id: token
+            }
+        });
+        res.status(200).send({ message: "The user is disconnected" });
+    }
+    catch (err) {
+        res.status(500).send({
+            message: err.message || `Could not find connection with given token.`
         });
     }
 });

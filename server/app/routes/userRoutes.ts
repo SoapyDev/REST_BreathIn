@@ -8,6 +8,6 @@ router.put('/Users/:id', updateUser);
 router.delete('/Users/:id', deleteUser);
 router.post('/Users/login', login);
 router.post('/Users/isLoggedIn', isLoggedIn)
-router.delete("/Users/disconnect/:id", logout);
+router.delete("/Users/disconnect/:token", logout);
 
 export default router;

@@ -71,6 +71,10 @@ Text.init(
             type: DataTypes.STRING,
             allowNull: true,
         },
+        lang: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         createdAt: {
             type: DataTypes.DATE,
             allowNull: true,
