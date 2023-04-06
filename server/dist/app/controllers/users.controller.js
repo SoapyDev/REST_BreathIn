@@ -8,32 +8,40 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { db } from "../models/index.js";
+import * as bcrypt from 'bcrypt';
 export const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Validate request
-        if (!req.body.email || !req.body.name || !req.body.password) {
-            res.status(400).send({
-                message: 'Content can not be empty!',
-            });
+        const { email, name, password } = req.body;
+        if (!email || !name || !password) {
+            res.status(400).send({ message: 'Email, name, and password are required' });
             return;
         }
-        // Create a User
-        const user = {
-            email: req.body.email,
-            name: req.body.name,
-            password: req.body.password
-        };
-        // Save User in the database
-        const [_instance, created] = yield db.User.findOrCreate({
-            where: { email: user.email },
-            defaults: user
+        const notUnique = yield db.User.findOne({
+            where: {
+                email: email,
+            }
         });
-        res.status(200).send(created);
+        if (notUnique) {
+            res.status(201).send({ message: "User already exists" });
+        }
+        // Hash the password before saving it to the database
+        const hashedPassword = yield bcrypt.hash(password, 10);
+        // Try to create the user in the database
+        const created = yield db.User.create({
+            email: email,
+            name: name,
+            password: hashedPassword,
+        });
+        if (created) {
+            res.status(201).send(true);
+        }
+        else {
+            res.status(200).send({ message: 'User already exists' });
+        }
     }
-    catch (err) {
-        res.status(500).send({
-            message: err.message || 'Some error occurred while creating the User.',
-        });
+    catch (error) {
+        console.error(error);
+        res.status(500).send({ message: 'Error creating user' });
     }
 });
 export const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -89,7 +97,9 @@ export const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password } = req.body;
+    const email = req.body.email;
+    const password = req.body.password;
+    console.log(email);
     try {
         if (!email || !password) {
             res.status(400).send({
@@ -102,48 +112,43 @@ export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 email: email
             }
         });
-        if (!user || password != user.password.toString()) {
+        if (!user) {
+            res.status(401).send({
+                message: `User with email ${email} not found.`
+            });
+            return;
+        }
+        const hash = Buffer.from(user.dataValues.password).toString('utf8');
+        const isSame = yield bcrypt.compare(password, hash);
+        if (!isSame) {
             res.status(401).send({
                 message: `User with email ${email} and the given password was not found.`,
             });
             return;
         }
-        const [instance, _created] = yield db.Connection.findOrCreate({
+        const isConnected = yield db.Connection.findOne({
             where: {
-                user_id: user.id,
+                user_id: user.dataValues.id,
             }
         });
-        res.status(201).send({ id: instance.id });
+        if (isConnected) {
+            res.status(200).send({ id: isConnected.id });
+            return;
+        }
+        const instance = yield db.Connection.create({
+            user_id: user.dataValues.id,
+        });
+        if (!instance) {
+            res.status(500).send({
+                message: `Failed to create connection.`
+            });
+            return;
+        }
+        res.status(200).send({ id: instance.id });
     }
     catch (err) {
         res.status(500).send({
             message: err.message || `Could not find user with email=${email} and password=${password}`
-        });
-    }
-});
-export const isLoggedIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const token = req.body.token;
-    try {
-        if (!token) {
-            res.status(400).send({
-                message: "Need a token to validate the login state."
-            });
-            return;
-        }
-        const connection = yield db.Connection.findOne({
-            where: {
-                id: token
-            }
-        });
-        if (!connection) {
-            res.status(401).send(false);
-            return;
-        }
-        res.status(201).send(true);
-    }
-    catch (err) {
-        res.status(500).send({
-            message: err.message || `Could not find connection with given token.`
         });
     }
 });

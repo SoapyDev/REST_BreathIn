@@ -28,11 +28,12 @@ User.init(
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            defaultValue: "",
+            allowNull: true,
         },
         email: {
             type: DataTypes.STRING,
             allowNull: false,
+            unique: true,
         },
         name: {
             type: DataTypes.STRING,
