@@ -1,5 +1,5 @@
 import express from 'express';
-import { getTitles } from '../controllers/text.controller.js';
+import getTitles from './text.controller.js';
 
 const textRouter = express.Router();
 

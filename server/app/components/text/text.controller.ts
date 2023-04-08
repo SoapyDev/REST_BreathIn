@@ -1,7 +1,7 @@
-import { db } from "../models/index.js"
+import db  from "../../config/db.js"
 import { Request, Response } from 'express';
 
-export const getTitles = async (req: Request, res: Response) => {
+const getTitles = async (req: Request, res: Response) => {
 
     const lang = req.body.lang;
     try {
@@ -16,8 +16,9 @@ export const getTitles = async (req: Request, res: Response) => {
         res.status(200).send(results);
     } catch (err) {
         res.status(500).send({
-            message: err.message || `Could not connect to the database.`
+            message: `Could not connect to the database.`
         })
     }
 
 };
+export default getTitles;

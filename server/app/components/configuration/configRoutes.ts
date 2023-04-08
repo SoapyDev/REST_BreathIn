@@ -1,5 +1,7 @@
 import express from 'express';
-import { createConfiguration, updateConfiguration, deleteConfiguration, getConfigurations, getActualConfig } from "../controllers/configuration.controller.js";
+import {createConfiguration, updateConfiguration, deleteConfiguration, getConfigurations, getActualConfig}  from './configuration.controller.js';
+
+
 
 const configRouter = express.Router();
 

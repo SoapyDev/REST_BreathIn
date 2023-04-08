@@ -1,12 +1,22 @@
 {
     "compilerOptions": {
-        "outDir": "./dist/",
         "target": "ES6",
+        "module": "ESNext",
         "moduleResolution": "node",
-        "allowSyntheticDefaultImports": true
+        "esModuleInterop": true,
+        "outDir": "dist",
+        "baseUrl": ".",
+        "paths": {
+        "*": ["*", "node_modules/*"]
+        },
+        "allowSyntheticDefaultImports": true,
+        "sourceMap": true,
+        "resolveJsonModule": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
     },
-    "include": [
-        "./*",
-        "./app/**/*"
-    ]
+    "include": ["app/**/*.ts", "server.ts", "app.ts", "app.ts"],
+    "exclude": ["node_modules"]
 }

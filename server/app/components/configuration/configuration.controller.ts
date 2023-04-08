@@ -1,7 +1,9 @@
-import { db } from "../models/index.js"
+import db  from "../../config/db.js"
 import { Request, Response } from 'express';
+import { Connection } from "../connections";
+import { User } from "../users";
 
-export const createConfiguration = async (req: Request, res: Response) => {
+const createConfiguration = async (req: Request, res: Response) => {
     try {
 
         // Validate request
@@ -17,12 +19,12 @@ export const createConfiguration = async (req: Request, res: Response) => {
         res.send(createdConfig);
     } catch (err) {
         res.status(500).send({
-            message: err.message || 'Some error occurred while creating the Configuration.',
+            message: 'Some error occurred while creating the Configuration.',
         });
     }
 };
 
-export const updateConfiguration = async (req: Request, res: Response) => {
+const updateConfiguration = async (req: Request, res: Response) => {
     const id = req.params.id;
 
     try {
@@ -41,12 +43,12 @@ export const updateConfiguration = async (req: Request, res: Response) => {
         }
     } catch (err) {
         res.status(500).send({
-            message: err.message || `Error updating configuration with id=${id}.`,
+            message: `Error updating configuration with id=${id}.`,
         });
     }
 };
 
-export const deleteConfiguration = async (req: Request, res: Response) => {
+const deleteConfiguration = async (req: Request, res: Response) => {
     const id = req.params.id;
 
     try {
@@ -65,16 +67,16 @@ export const deleteConfiguration = async (req: Request, res: Response) => {
         }
     } catch (err) {
         res.status(500).send({
-            message: err.message || `Could not delete Configuration with id=${id}.`,
+            message: `Could not delete Configuration with id=${id}.`,
         });
     }
 };
 
-export const getActualConfig = async (req: Request, res: Response) => {
+const getActualConfig = async (req: Request, res: Response) => {
     const token = req.body.token;
     try {
 
-        let user_connection;
+        let user_connection: Connection;
 
         user_connection = await db.Connection.findByPk(token)
         if (!user_connection) {
@@ -84,7 +86,7 @@ export const getActualConfig = async (req: Request, res: Response) => {
             return;
         }
 
-        let user;
+        let user: User;
 
         user = await db.User.findByPk(user_connection.user_id);
 
@@ -114,12 +116,12 @@ export const getActualConfig = async (req: Request, res: Response) => {
 
     } catch (err) {
         res.status(500).send({
-            message: err.message || `No configuration was found`
+            message: `No configuration was found`
         })
     }
 };
 
-export const getConfigurations = async (req: Request, res: Response) => {
+const getConfigurations = async (req: Request, res: Response) => {
 
     const userId = req.body.userId;
     try {
@@ -139,7 +141,16 @@ export const getConfigurations = async (req: Request, res: Response) => {
 
     } catch (err) {
         res.status(500).send({
-            message: err.message || `No configurations couldn't be found with the current user`
+            message: `No configurations couldn't be found with the current user`
         })
     }
 };
+
+
+export {
+    getConfigurations,
+    getActualConfig,
+    deleteConfiguration,
+    updateConfiguration,
+    createConfiguration
+}

@@ -1,40 +1,31 @@
-import express, { Request, Response, text } from 'express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import dotenv from "dotenv"
-import router from "./app/routes/userRoutes.js"
-import textRouter from "./app/routes/textRoutes.js"
-import configRouter from './app/routes/configRoutes.js';
-import { db } from './app/models/index.js';
-
-dotenv.config();
+import cluster from "cluster";
+import {cpus} from 'os'
+import db from "./app/config/db.js";
+import { Request, Response } from "express";
+import app from "./app.js";
 
 
+const numCpus = cpus().length;
 
-const app = express();
-
-const corsOptions = {
-    origin: 'http://localhost:5173'
-};
+if(cluster.isPrimary){
+    console.log(`Primary ${process.pid} is running`);
 
 
+    for(let i = 0; i< numCpus; i++){
+        cluster.fork();
+    }
 
-app.use(cors(corsOptions));
+    cluster.on('exit', (worker)=>{
+        console.log(`Worker ${worker.process.pid} died`);
+    });
 
-app.use(bodyParser.json());
-
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use(router);
-
-app.use(textRouter);
-
-app.use(configRouter);
+}else{
 
 app.get("/", async (req: Request, res: Response) => {
+    console.log("Received request at /"); // Add this line
     try {
         await db.sequelize.authenticate();
-        res.status(400).send({
+        res.status(200).send({
             message: "Connected successfully"
         })
 
@@ -47,3 +38,5 @@ const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
     console.log(`Server is running on : ${PORT}`);
 })
+
+}
