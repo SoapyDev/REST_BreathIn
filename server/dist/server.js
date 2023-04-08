@@ -26,13 +26,11 @@ else {
         console.log("Received request at /"); // Add this line
         try {
             yield db.sequelize.authenticate();
-            console.log("connection success");
             res.status(200).send({
                 message: "Connected successfully"
             });
         }
         catch (err) {
-            console.error("Could not connect to the database:", err.message); // Log the error message
             res.status(500).send({ message: `Could not connect to the database : ${err.message}` });
         }
     }));

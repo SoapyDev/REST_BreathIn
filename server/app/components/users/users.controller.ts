@@ -24,7 +24,7 @@ const createUser = async (req: Request, res: Response) => {
         }
 
         // Hash the password before saving it to the database
-        const hashedPassword = await bcrypt.hash(password, process.env.SALT);
+        const hashedPassword = await bcrypt.hash(password, parseInt(process.env.SALT));
 
         // Try to create the user in the database
         const created = await db.User.create({
@@ -170,6 +170,43 @@ const login = async (req: Request, res: Response) => {
 
     }
 }
+
+
+const isLoggedIn = async (req: Request, res: Response) => {
+
+    const token = req.body.token;
+
+
+    try {
+        if (!token) {
+            res.status(400).send({
+                message: "Need a token to login"
+            })
+            return;
+        }
+
+        const connection = await db.Connection.findOne({
+            where: {
+                id: token
+            }
+        })
+
+        if (!connection) {
+            res.status(401).send({
+                message: `You are not connected`
+            });
+            return;
+        }
+
+        res.status(200).send({ id: connection.id })
+
+    } catch (err) {
+        res.status(500).send({
+            message:  `Could not find any connection using this token.`
+        })
+
+    }
+}
 const logout = async (req: Request, res: Response) => {
 
     const token = req.params.token;
@@ -196,4 +233,4 @@ const logout = async (req: Request, res: Response) => {
     }
 }
 
-export default {login, logout, createUser, deleteUser, updateUser}
+export default {login,isLoggedIn ,logout, createUser, deleteUser, updateUser}
