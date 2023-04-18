@@ -107,7 +107,6 @@ const login = async (req: Request, res: Response) => {
 
     const email = req.body.email;
     const password = req.body.password;
-    console.log(email);
 
     try {
         if (!email || !password) {
@@ -130,8 +129,9 @@ const login = async (req: Request, res: Response) => {
             return;
         }
 
-        const hash = Buffer.from(user.dataValues.password).toString('utf8');
-        const isSame = await bcrypt.compare(password, hash);
+
+        const isSame = await bcrypt.compare(password, user.password);
+
         if (!isSame) {
             res.status(401).send({
                 message: `User with email ${email} and the given password was not found.`,
@@ -154,6 +154,7 @@ const login = async (req: Request, res: Response) => {
             user_id: user.dataValues.id,
         })
 
+
         if (!instance) {
             res.status(500).send({
                 message: `Failed to create connection.`
@@ -161,7 +162,18 @@ const login = async (req: Request, res: Response) => {
             return;
         }
 
-        res.status(200).send({ id: instance.id });
+        if(instance.id != null){
+            res.status(200).send({id: instance.id})
+            return;
+        }
+
+        const connection = await db.Connection.findOne({
+            where:{
+                user_id: instance.user_id
+            }
+        })
+
+        res.status(200).send({ id: connection.id });
 
     } catch (err) {
         res.status(500).send({
